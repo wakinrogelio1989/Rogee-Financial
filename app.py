@@ -27,7 +27,7 @@ st.markdown("""
 USER_PROFILES = {
     "Rogee": {
         "secret_key": "ROGEE_PASSWORD",
-        "default_pass": "rogee2026",
+        "default_pass": "rogee1989",
         "data_file": "expenses_rogee.csv"
     },
     "Ferdie": {
