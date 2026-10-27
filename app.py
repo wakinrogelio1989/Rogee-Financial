@@ -33,7 +33,7 @@ USER_PROFILES = {
         "password": st.secrets.get("ROGEE_PASSWORD", "rogee2026"),  # Rogee's Password
         "data_file": "expenses_rogee.csv"
     },
-    "User 2": {  # <--- RENAME "User 2" TO ANYTHING YOU WANT IN NOTEPAD (e.g., "Maria", "Wife", "Partner")
+    "Ferdie": {  # <--- RENAME "User 2" TO ANYTHING YOU WANT IN NOTEPAD (e.g., "Maria", "Wife", "Partner")
         "password": st.secrets.get("USER2_PASSWORD", "user2026"),  # <--- CHANGE USER 2'S PASSWORD HERE
         "data_file": "expenses_user2.csv"
     }
