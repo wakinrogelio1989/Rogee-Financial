@@ -23,7 +23,7 @@ st.markdown("""
 USER_PROFILES = {
     "Rogee": {
         "s_key": "ROGEE_KEY",
-        "d_pass": "rogee2026",
+        "d_pass": "rogee1989",
         "data_file": "expenses_rogee.csv"
     },
     "Ferdie": {
