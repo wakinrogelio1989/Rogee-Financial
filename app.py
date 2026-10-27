@@ -19,14 +19,7 @@ st.set_page_config(
 # Custom Compact Styling for Mobile & Desktop
 st.markdown("""
 <style>
-    .main-header { font-size: 1.8rem; font-weight: 800; color: #1E3A8A; margin-bottom: 0.1rem; line-height: 1.2; }
-    .sub-header { font-size: 0.95rem; color: #4B5563; margin-bottom: 0.8rem; }
-    .time-badge { background-color: #F3F4F6; border: 1px solid #E5E7EB; color: #374151; padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 500; margin-bottom: 12px; display: inline-block; width: 100%; text-align: center; }
-    .priority-banner { background-color: #FEF2F2; border: 1px solid #FECACA; border-left: 5px solid #EF4444; padding: 10px 14px; border-radius: 6px; margin-bottom: 12px; }
-    .income-card { background-color: #F0FDF4; border: 1px solid #BBF7D0; border-left: 5px solid #22C55E; padding: 10px 14px; border-radius: 6px; margin-bottom: 12px; }
-    .rate-card { background-color: #EFF6FF; border: 1px solid #BFDBFE; border-left: 4px solid #3B82F6; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 0.85rem; }
-    .stMetric { background-color: #F9FAFB; padding: 8px; border-radius: 6px; border: 1px solid #F3F4F6; }
-    div[data-testid="stMetricValue"] { font-size: 1.15rem !important; font-weight: 700; }
+    .main-header { font-size: 1.8rem; font-weight: 800; color: #1E3A8A; margin-bottom: 0.1rem; line-height: 1.2; } .sub-header { font-size: 0.95rem; color: #4B5563; margin-bottom: 0.8rem; } .time-badge { background-color: #F3F4F6; border: 1px solid #E5E7EB; color: #1F2937 !important; padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; margin-bottom: 12px; display: inline-block; width: 100%; text-align: center; } /\* Box Containers - Force dark text on light backgrounds in Dark Mode \*/ .priority-banner { background-color: #FEF2F2; border: 1px solid #FECACA; border-left: 5px solid #EF4444; padding: 10px 14px; border-radius: 6px; margin-bottom: 12px; color: #111827 !important; } .priority-banner \* { color: #111827 !important; } .income-card { background-color: #F0FDF4; border: 1px solid #BBF7D0; border-left: 5px solid #22C55E; padding: 10px 14px; border-radius: 6px; margin-bottom: 12px; color: #111827 !important; } .income-card \* { color: #111827 !important; } .rate-card { background-color: #EFF6FF; border: 1px solid #BFDBFE; border-left: 4px solid #3B82F6; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 0.85rem; color: #111827 !important; } .rate-card \* { color: #111827 !important; } /\* Metric Boxes &amp; Numbers Visibility Fix \*/ .stMetric { background-color: #F9FAFB !important; padding: 8px; border-radius: 6px; border: 1px solid #E5E7EB !important; } div[data-testid="stMetricValue"] { font-size: 1.15rem !important; font-weight: 800 !important; color: #1E3A8A !important; } div[data-testid="stMetricLabel"] { color: #374151 !important; font-weight: 600 !important; }
 </style>
 """, unsafe_allow_html=True)
 
