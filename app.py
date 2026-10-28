@@ -471,23 +471,7 @@ with tab_add:
             st.rerun()
 
 with tab_history:
-    st.subheader(f"📜 Recorded Transaction History ({current_user})")
-    if not df_expenses.empty:
-        total_recorded_bhd = df_expenses["Amount (BHD)"].sum()
-        total_recorded_disp = total_recorded_bhd * rate_mult
-        st.info(f"💰 **Total Recorded Expenses: {curr_symbol}{total_recorded_disp:,.2f}** (BD {total_recorded_bhd:,.2f} | ₱{total_recorded_bhd*bhd_to_php:,.2f} | ${total_recorded_bhd*bhd_to_usd:,.2f})")
-
-        cat_filter = st.multiselect("Filter by Category", options=list(df_expenses["Main Category"].unique()), default=list(df_expenses["Main Category"].unique()))
-        filtered_df = df_expenses[df_expenses["Main Category"].isin(cat_filter)] if cat_filter else df_expenses
-        st.dataframe(filtered_df.sort_values(by="Date", ascending=False), use_container_width=True, hide_index=True)
-
-        st.markdown("---")
-        if st.button("🗑️ Clear All Expense Data", type="primary"):
-            if os.path.exists(DATA_FILE): os.remove(DATA_FILE)
-            st.success("All transaction logs cleared!")
-            st.rerun()
-    else:
-        st.info("No transaction history found.")
+    st.subheader(f"📜 Recorded Transaction History ({current\_user})") if not df\_expenses.empty: total\_recorded\_bhd = df\_expenses["Amount (BHD)"].sum() if "Amount (BHD)" in df\_expenses.columns else df\_expenses["Amount"].sum() total\_recorded\_disp = total\_recorded\_bhd \* rate\_mult st.info(f"💰 \*\*Total Recorded Expenses: {curr\_symbol}{total\_recorded\_disp:,.2f}\*\* (BD {total\_recorded\_bhd:,.2f} | ₱{total\_recorded\_bhd\*bhd\_to\_php:,.2f} | ${total\_recorded\_bhd\*bhd\_to\_usd:,.2f})") st.caption("✏️ \*\*How to Edit/Delete:\*\* Double-click any cell to change dates, amounts, or descriptions. Select checkbox rows to delete them, then click \*\*💾 Save Ledger Changes\*\*!") # Interactive Editable Table (allows inline editing and row deletion) edited\_df = st.data\_editor( df\_expenses.sort\_values(by="Date", ascending=False), num\_rows="dynamic", use\_container\_width=True, key=f"expense\_editor\_{current\_user}" ) col\_hist1, col\_hist2 = st.columns(2) with col\_hist1: if st.button("💾 Save Ledger Changes", type="primary", use\_container\_width=True): save\_data(edited\_df, DATA\_FILE) st.success("Ledger updated and saved successfully!") st.rerun() with col\_hist2: if st.button("🗑️ Clear Entire History", use\_container\_width=True): if os.path.exists(DATA\_FILE): os.remove(DATA\_FILE) st.success("All transaction logs cleared!") st.rerun() else: st.info("No transaction history found. Start recording payments in the 'Record Expense' tab!")
 
 with tab_forex:
     st.subheader("💱 Live Multi-Currency & Cross Rates Engine")
