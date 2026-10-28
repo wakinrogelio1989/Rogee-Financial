@@ -147,13 +147,13 @@ st.markdown("""
 USER_PROFILES = {
     "Rogee": {
         "sec_key": "ROGEE_KEY",
-        "def_key": "rogee2026",
+        "def_key": "1989",
         "data_file": "expenses_rogee.csv",
         "config_file": "config_rogee.json"
     },
-    "User 2": {
+    "Ferdie": {
         "sec_key": "USER2_KEY",
-        "def_key": "user2026",
+        "def_key": "Ce_0121119",
         "data_file": "expenses_user2.csv",
         "config_file": "config_user2.json"
     },
