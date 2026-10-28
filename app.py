@@ -6,7 +6,6 @@ from datetime import datetime, timezone, timedelta
 import os
 import json
 
-# Page Config
 st.set_page_config(
     page_title="Rogee Financial Command Center",
     page_icon="💰",
@@ -14,7 +13,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS with Dark Mode Contrast
+# Custom CSS styling with Dark Mode Adaptive Contrast & Status Color Rules
 st.markdown("""
 <style>
     .main-header { font-size: 1.8rem; font-weight: 800; color: #1E3A8A; margin-bottom: 0.1rem; line-height: 1.2; }
@@ -27,19 +26,25 @@ st.markdown("""
         .time-badge { background-color: #1F2937 !important; border-color: #374151 !important; color: #F3F4F6 !important; }
     }
 
-    .overbudget-banner { background-color: #FEF2F2; border: 1px solid #FECACA; border-left: 5px solid #EF4444; padding: 12px 16px; border-radius: 6px; margin-bottom: 14px; color: #991B1B !important; font-weight: 600; }
+    .priority-banner { background-color: #FEF2F2; border: 1px solid #FECACA; border-left: 5px solid #EF4444; padding: 10px 14px; border-radius: 6px; margin-bottom: 12px; color: #991B1B !important; }
+    .priority-banner * { color: #991B1B !important; }
     @media (prefers-color-scheme: dark) {
-        .overbudget-banner { background-color: #450A0A !important; border-color: #7F1D1D !important; color: #FECACA !important; }
+        .priority-banner { background-color: #450A0A !important; border-color: #7F1D1D !important; border-left: 5px solid #EF4444 !important; color: #FECACA !important; }
+        .priority-banner * { color: #FECACA !important; }
     }
 
-    .surplus-banner { background-color: #F0FDF4; border: 1px solid #BBF7D0; border-left: 5px solid #22C55E; padding: 12px 16px; border-radius: 6px; margin-bottom: 14px; color: #166534 !important; font-weight: 600; }
+    .income-card { background-color: #F0FDF4; border: 1px solid #BBF7D0; border-left: 5px solid #22C55E; padding: 10px 14px; border-radius: 6px; margin-bottom: 12px; color: #166534 !important; }
+    .income-card * { color: #166534 !important; }
     @media (prefers-color-scheme: dark) {
-        .surplus-banner { background-color: #052E16 !important; border-color: #14532D !important; color: #BBF7D0 !important; }
+        .income-card { background-color: #052E16 !important; border-color: #14532D !important; border-left: 5px solid #22C55E !important; color: #BBF7D0 !important; }
+        .income-card * { color: #BBF7D0 !important; }
     }
 
     .rate-card { background-color: #EFF6FF; border: 1px solid #BFDBFE; border-left: 4px solid #3B82F6; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 0.85rem; color: #1E40AF !important; }
+    .rate-card * { color: #1E40AF !important; }
     @media (prefers-color-scheme: dark) {
-        .rate-card { background-color: #1E3A8A !important; border-color: #1D4ED8 !important; color: #BFDBFE !important; }
+        .rate-card { background-color: #1E3A8A !important; border-color: #1D4ED8 !important; border-left: 4px solid #60A5FA !important; color: #BFDBFE !important; }
+        .rate-card * { color: #BFDBFE !important; }
     }
 
     .stMetric { background-color: #F9FAFB !important; padding: 8px 12px; border-radius: 6px; border: 1px solid #E5E7EB !important; }
@@ -71,81 +76,66 @@ USER_PROFILES = {
     },
     "User 3": {
         "sec_key": "USER3_KEY",
-        "def_key": "user3026",
+        "def_key": "user2026",
         "data_file": "expenses_user3.csv",
         "config_file": "config_user3.json",
         "invest_file": "investments_user3.csv"
     },
     "User 4": {
         "sec_key": "USER4_KEY",
-        "def_key": "user42026",
+        "def_key": "user2026",
         "data_file": "expenses_user4.csv",
         "config_file": "config_user4.json",
         "invest_file": "investments_user4.csv"
     }
 }
 
-if "authenticated_user" not in st.session_state:
-    st.session_state["authenticated_user"] = None
+# Login Gate
+st.sidebar.title("🔐 User Account Login")
+current_user = st.sidebar.selectbox("Select Profile", list(USER_PROFILES.keys()), index=0)
+user_info = USER_PROFILES[current_user]
 
-# Authentication Screen
-if not st.session_state["authenticated_user"]:
-    st.markdown('<div class="main-header">🔐 Rogee Financial Command Center</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sub-header">Select your user profile and enter your secret passcode to access your personal ledger.</div>', unsafe_allow_html=True)
-    
-    col_l1, col_l2 = st.columns([1, 1])
-    with col_l1:
-        selected_user = st.selectbox("Select User Profile", list(USER_PROFILES.keys()))
-        input_passkey = st.text_input("Enter Passcode", type="password")
-        login_btn = st.button("Unlock Dashboard", type="primary", use_container_width=True)
-        
-        prof_info = USER_PROFILES[selected_user]
-        correct_key = st.secrets.get(prof_info["sec_key"], prof_info["def_key"]) if hasattr(st, "secrets") else prof_info["def_key"]
-        
-        if login_btn:
-            if input_passkey == correct_key:
-                st.session_state["authenticated_user"] = selected_user
-                st.success(f"Welcome, {selected_user}!")
-                st.rerun()
-            else:
-                st.error("Incorrect passcode. Please try again.")
-    with col_l2:
-        st.info("💡 Default Passcodes:\n- Rogee: rogee2026\n- User 2: user2026\n- User 3: user3026\n- User 4: user42026\n\nConfigure custom keys in Streamlit Secrets!")
+secret_passkey = st.secrets.get(user_info["sec_key"], user_info["def_key"])
+entered_key = st.sidebar.text_input(f"Passkey for {current_user}", type="password", value=secret_passkey)
+
+if entered_key != secret_passkey:
+    st.error(f"Invalid Passkey for {current_user}. Please enter the correct password.")
     st.stop()
 
-current_user = st.session_state["authenticated_user"]
-user_cfg = USER_PROFILES[current_user]
-
-DATA_FILE = user_cfg["data_file"]
-CONFIG_FILE = user_cfg["config_file"]
-INVEST_FILE = user_cfg["invest_file"]
+DATA_FILE = user_info["data_file"]
+CONFIG_FILE = user_info["config_file"]
+INVEST_FILE = user_info["invest_file"]
 
 def load_user_config():
     defaults = {
-        "currency_symbol": "BD",
         "salary_bhd": 1500.0,
         "business_bhd": 0.0,
         "sidelines_bhd": 0.0,
         "other_income_bhd": 0.0,
-        "bhd_to_php": 158.50,
+        "bhd_to_php": 156.25,
         "bhd_to_usd": 2.6525,
-        "debts_pct": 15,
         "needs_pct": 45,
         "wants_pct": 20,
-        "savings_pct": 20
+        "savings_pct": 20,
+        "debts_pct": 15,
+        "priority_allocation_bhd": 200.0,
+        "curr_symbol": "BD"
     }
     if os.path.exists(CONFIG_FILE):
         try:
             with open(CONFIG_FILE, "r") as f:
-                data = json.load(f)
-                defaults.update(data)
+                saved = json.load(f)
+                defaults.update(saved)
         except Exception:
             pass
     return defaults
 
 def save_user_config(cfg):
-    with open(CONFIG_FILE, "w") as f:
-        json.dump(cfg, f, indent=4)
+    try:
+        with open(CONFIG_FILE, "w") as f:
+            json.dump(cfg, f, indent=4)
+    except Exception:
+        pass
 
 cfg = load_user_config()
 
@@ -153,26 +143,25 @@ def load_data():
     if os.path.exists(DATA_FILE):
         try:
             df = pd.read_csv(DATA_FILE)
-            if "Amount" in df.columns and "Billed Amount" not in df.columns:
-                df["Billed Amount"] = df["Amount"]
-            if "Actual Paid" not in df.columns:
-                df["Actual Paid"] = df["Billed Amount"] if "Billed Amount" in df.columns else 0.0
+            if "Date" in df.columns:
+                df['Date'] = pd.to_datetime(df['Date'], errors='coerce').dt.date
+            
+            if "Billed Amount" not in df.columns and "Amount" in df.columns:
+                df["Billed Amount"] = pd.to_numeric(df["Amount"], errors="coerce").fillna(0.0)
+            if "Actual Paid" not in df.columns and "Amount" in df.columns:
+                df["Actual Paid"] = pd.to_numeric(df["Amount"], errors="coerce").fillna(0.0)
             if "Currency" not in df.columns:
                 df["Currency"] = "BHD"
             if "Status" not in df.columns:
                 df["Status"] = "Paid"
             if "Payment Method" not in df.columns:
-                df["Payment Method"] = "Benefit Pay"
-            
-            df["Billed Amount"] = pd.to_numeric(df["Billed Amount"], errors="coerce").fillna(0.0)
-            df["Actual Paid"] = pd.to_numeric(df["Actual Paid"], errors="coerce").fillna(0.0)
-            df["Date"] = pd.to_datetime(df["Date"], errors="coerce").dt.date
+                df["Payment Method"] = "Bank Transfer"
             return df
         except Exception:
             pass
     return pd.DataFrame(columns=[
-        "Date", "Main Category", "Sub Category", "Merchant/Description", 
-        "Billed Amount", "Actual Paid", "Currency", "Status", "Payment Method"
+        "Date", "Main Category", "Sub Category", "Merchant/Description",
+        "Billed Amount", "Actual Paid", "Currency", "Payment Method"
     ])
 
 def save_data(df, path):
@@ -180,302 +169,315 @@ def save_data(df, path):
 
 df_expenses = load_data()
 
-# Sidebar Setup
-st.sidebar.title(f"👤 {current_user}'s Settings")
-if st.sidebar.button("🚪 Log Out", use_container_width=True):
-    st.session_state["authenticated_user"] = None
-    st.rerun()
-
+# Sidebar: Financial Settings
 st.sidebar.markdown("---")
-st.sidebar.subheader("💱 Currency & Live Exchange Rates")
-curr_symbol = st.sidebar.selectbox("Base Currency Symbol", ["BD", "₱", "$", "€", "£"], index=0)
-bhd_to_php = st.sidebar.number_input("Exchange Rate: 1 BHD to PHP (₱)", min_value=1.0, value=float(cfg.get("bhd_to_php", 158.50)), step=0.5)
-bhd_to_usd = st.sidebar.number_input("Exchange Rate: 1 BHD to USD ($)", min_value=0.1, value=float(cfg.get("bhd_to_usd", 2.6525)), step=0.01)
+st.sidebar.subheader("💰 Monthly Take-Home Income")
 
-st.sidebar.markdown("---")
-st.sidebar.subheader("💵 Monthly Take-Home Income")
-salary_bhd = st.sidebar.number_input(f"Primary Salary ({curr_symbol})", min_value=0.0, value=float(cfg.get("salary_bhd", 1500.0)), step=50.0)
-business_bhd = st.sidebar.number_input(f"Business Income ({curr_symbol})", min_value=0.0, value=float(cfg.get("business_bhd", 0.0)), step=50.0)
-sidelines_bhd = st.sidebar.number_input(f"Sidelines / Freelance ({curr_symbol})", min_value=0.0, value=float(cfg.get("sidelines_bhd", 0.0)), step=50.0)
-other_income_bhd = st.sidebar.number_input(f"Other Income ({curr_symbol})", min_value=0.0, value=float(cfg.get("other_income_bhd", 0.0)), step=50.0)
+curr_symbol = st.sidebar.selectbox("Display Currency", ["BD", "PHP", "USD"], index=0)
+salary_bhd = st.sidebar.number_input("Primary Monthly Salary (BHD)", min_value=0.0, value=float(cfg["salary_bhd"]), step=50.0)
+business_bhd = st.sidebar.number_input("Business Income (BHD)", min_value=0.0, value=float(cfg["business_bhd"]), step=20.0)
+sidelines_bhd = st.sidebar.number_input("Sidelines / Freelance (BHD)", min_value=0.0, value=float(cfg["sidelines_bhd"]), step=10.0)
+other_income_bhd = st.sidebar.number_input("Other Income / Bonuses (BHD)", min_value=0.0, value=float(cfg["other_income_bhd"]), step=10.0)
 
 total_income_bhd = salary_bhd + business_bhd + sidelines_bhd + other_income_bhd
 
 st.sidebar.markdown("---")
-st.sidebar.subheader("📊 4-Category Framework Allocation (%)")
-debts_pct = st.sidebar.slider("Debts & Credits Target %", 0, 100, int(cfg.get("debts_pct", 15)))
-needs_pct = st.sidebar.slider("Needs Target % (Essentials)", 0, 100, int(cfg.get("needs_pct", 45)))
-wants_pct = st.sidebar.slider("Wants Target % (Lifestyle)", 0, 100, int(cfg.get("wants_pct", 20)))
-savings_pct = st.sidebar.slider("Savings & Investments %", 0, 100, int(cfg.get("savings_pct", 20)))
+st.sidebar.subheader("💱 Exchange Rates")
+bhd_to_php = st.sidebar.number_input("1 BHD = PHP (₱)", min_value=1.0, value=float(cfg["bhd_to_php"]), step=0.5)
+bhd_to_usd = st.sidebar.number_input("1 BHD = USD ($)", min_value=0.1, value=float(cfg["bhd_to_usd"]), step=0.01)
 
-tot_alloc = debts_pct + needs_pct + wants_pct + savings_pct
-if tot_alloc != 100:
-    st.sidebar.warning(f"⚠️ Allocation total is {tot_alloc}%. Adjust sliders to equal 100%.")
+rate_mult = 1.0 if curr_symbol == "BD" else (bhd_to_php if curr_symbol == "PHP" else bhd_to_usd)
+disp_total_income = total_income_bhd * rate_mult
+
+st.sidebar.markdown(
+    f'<div class="income-card">'
+    f'<div style="font-size:0.8rem; font-weight:700; text-transform:uppercase;">TOTAL COMBINED MONTHLY INCOME</div>'
+    f'<div style="font-size:1.3rem; font-weight:800; margin-top:2px;">{curr_symbol} {disp_total_income:,.2f}</div>'
+    f'<div style="font-size:0.75rem; margin-top:4px;">BD {total_income_bhd:,.2f} | ₱{(total_income_bhd * bhd_to_php):,.2f} | ${(total_income_bhd * bhd_to_usd):,.2f}</div>'
+    f'</div>',
+    unsafe_allow_html=True
+)
+
+st.sidebar.markdown("---")
+st.sidebar.subheader("⚙️ 4-Category Allocation Targets (%)")
+
+priority_allocation_bhd = st.sidebar.number_input("100% Mandatory Priority (BHD)", min_value=0.0, value=float(cfg["priority_allocation_bhd"]), step=20.0)
+
+debts_pct = st.sidebar.slider("Debts & Credits Target %", 0, 100, int(cfg["debts_pct"]))
+needs_pct = st.sidebar.slider("Needs Target % (Essentials)", 0, 100, int(cfg["needs_pct"]))
+wants_pct = st.sidebar.slider("Wants Target % (Lifestyle)", 0, 100, int(cfg["wants_pct"]))
+savings_pct = st.sidebar.slider("Savings & Investments Target %", 0, 100, int(cfg["savings_pct"]))
+
+alloc_sum = debts_pct + needs_pct + wants_pct + savings_pct
+if alloc_sum != 100:
+    st.sidebar.warning(f"Category Sliders total {alloc_sum}%. Should equal 100%.")
 
 # Save config updates
 new_cfg = {
-    "currency_symbol": curr_symbol,
     "salary_bhd": salary_bhd,
     "business_bhd": business_bhd,
     "sidelines_bhd": sidelines_bhd,
     "other_income_bhd": other_income_bhd,
     "bhd_to_php": bhd_to_php,
     "bhd_to_usd": bhd_to_usd,
-    "debts_pct": debts_pct,
     "needs_pct": needs_pct,
     "wants_pct": wants_pct,
-    "savings_pct": savings_pct
+    "savings_pct": savings_pct,
+    "debts_pct": debts_pct,
+    "priority_allocation_bhd": priority_allocation_bhd,
+    "curr_symbol": curr_symbol
 }
 save_user_config(new_cfg)
 
-framework_title = f"{debts_pct}/{needs_pct}/{wants_pct}/{savings_pct} Framework"
-
-# Currency Conversion Helper Functions
-def to_bhd(amt, cur):
-    amt = float(amt)
-    if cur == "PHP":
-        return amt / bhd_to_php if bhd_to_php > 0 else 0.0
-    elif cur == "USD":
-        return amt / bhd_to_usd if bhd_to_usd > 0 else 0.0
-    return amt
-
-def to_php(amt_bhd):
-    return float(amt_bhd) * bhd_to_php
-
-def to_usd(amt_bhd):
-    return float(amt_bhd) * bhd_to_usd
-
-# Calculate Paid BHD for each transaction
-if not df_expenses.empty:
-    df_expenses["Billed_BHD"] = df_expenses.apply(lambda r: to_bhd(r["Billed Amount"], r.get("Currency", "BHD")), axis=1)
-    df_expenses["Paid_BHD"] = df_expenses.apply(lambda r: to_bhd(r["Actual Paid"], r.get("Currency", "BHD")), axis=1)
-    df_expenses["Pending_BHD"] = (df_expenses["Billed_BHD"] - df_expenses["Paid_BHD"]).clip(lower=0.0)
-else:
-    df_expenses["Billed_BHD"] = 0.0
-    df_expenses["Paid_BHD"] = 0.0
-    df_expenses["Pending_BHD"] = 0.0
-
-total_spent_bhd = float(df_expenses["Paid_BHD"].sum()) if not df_expenses.empty else 0.0
-net_remaining_bhd = total_income_bhd - total_spent_bhd
-
-# Header with Live Clocks
-bh_time = datetime.now(timezone.utc) + timedelta(hours=3)
-ph_time = datetime.now(timezone.utc) + timedelta(hours=8)
+# Time calculations
+utc_now = datetime.now(timezone.utc)
+bh_time = utc_now + timedelta(hours=3)
+ph_time = utc_now + timedelta(hours=8)
 
 st.markdown('<div class="main-header">Rogee Financial Command Center</div>', unsafe_allow_html=True)
-st.markdown(f'<div class="sub-header">Personal Budgeting & Wealth Tracking — <b>{framework_title}</b></div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Personalized Multi-Currency Budgeting, Analytics & Trading Command Center</div>', unsafe_allow_html=True)
 
 st.markdown(
     f'<div class="time-badge">'
-    f'🇧🇭 <b>Bahrain:</b> {bh_time.strftime("%d %b %Y, %I:%M %p")} AST &nbsp;|&nbsp; '
-    f'🇵🇭 <b>Philippines:</b> {ph_time.strftime("%d %b %Y, %I:%M %p")} PST &nbsp;|&nbsp; '
-    f'👤 <b>User Profile:</b> {current_user}'
+    f'Bahrain: {bh_time.strftime("%d %b %Y, %I:%M %p")} AST &nbsp;|&nbsp; '
+    f'Philippines: {ph_time.strftime("%d %b %Y, %I:%M %p")} PHT &nbsp;|&nbsp; '
+    f'Account: {current_user}'
     f'</div>',
     unsafe_allow_html=True
 )
 
-# Over Budget / Surplus Alert Banner
-if net_remaining_bhd < 0:
-    over_amt_bhd = abs(net_remaining_bhd)
-    st.markdown(
-        f'<div class="overbudget-banner">'
-        f'🚨 <b>OVER BUDGET ALERT:</b> Total payments exceed income by '
-        f'<b>BD {over_amt_bhd:,.2f}</b> (₱{to_php(over_amt_bhd):,.2f} | ${to_usd(over_amt_bhd):,.2f})!'
-        f'</div>',
-        unsafe_allow_html=True
-    )
-else:
-    st.markdown(
-        f'<div class="surplus-banner">'
-        f'✅ <b>NET CASH REMAINING:</b> You have '
-        f'<b>BD {net_remaining_bhd:,.2f}</b> (₱{to_php(net_remaining_bhd):,.2f} | ${to_usd(net_remaining_bhd):,.2f}) available in unspent income.'
-        f'</div>',
-        unsafe_allow_html=True
-    )
-
-# Tabs
-tab_dash, tab_add, tab_history, tab_invest, tab_reports, tab_guide = st.tabs([
-    "📊 Dashboard & Analytics", 
-    "➕ Record Expense", 
-    "📜 Transaction History", 
-    "📊 MT5 & COL Investments", 
-    "📥 Download Reports", 
-    "📘 User Guide"
+# Main Tabs
+tab_dash, tab_add, tab_history, tab_forecast, tab_mt5, tab_invest, tab_reports, tab_guide = st.tabs([
+    "📊 Dashboard & Analytics",
+    "➕ Record Expense",
+    "📜 Transaction History",
+    "🔮 12-Month Projections",
+    "📈 MT5 & Pip Calculator",
+    "📈 Investment Tracker",
+    "📥 Download Reports",
+    "📘 Guide & Setup"
 ])
 
-# ----------------------------------------------------
-# TAB 1: DASHBOARD
-# ----------------------------------------------------
+# Normalize currency function
+def normalize_to_bhd(row):
+    cur = str(row.get("Currency", "BHD")).upper()
+    billed = float(row.get("Billed Amount", 0.0))
+    paid = float(row.get("Actual Paid", 0.0))
+    if cur == "PHP":
+        return billed / bhd_to_php, paid / bhd_to_php
+    elif cur == "USD":
+        return billed / bhd_to_usd, paid / bhd_to_usd
+    return billed, paid
+
+if not df_expenses.empty:
+    bhd_vals = df_expenses.apply(normalize_to_bhd, axis=1)
+    df_expenses["Billed_BHD"] = [v[0] for v in bhd_vals]
+    df_expenses["Paid_BHD"] = [v[1] for v in bhd_vals]
+else:
+    df_expenses["Billed_BHD"] = []
+    df_expenses["Paid_BHD"] = []
+
+# Actuals
+actual_priority_bhd = float(df_expenses[df_expenses["Main Category"].str.contains("100% Priority", na=False)]["Paid_BHD"].sum()) if not df_expenses.empty else 0.0
+actual_debts_bhd = float(df_expenses[df_expenses["Main Category"].str.contains("Debts", na=False)]["Paid_BHD"].sum()) if not df_expenses.empty else 0.0
+actual_needs_bhd = float(df_expenses[df_expenses["Main Category"].str.contains("Needs", na=False)]["Paid_BHD"].sum()) if not df_expenses.empty else 0.0
+actual_wants_bhd = float(df_expenses[df_expenses["Main Category"].str.contains("Wants", na=False)]["Paid_BHD"].sum()) if not df_expenses.empty else 0.0
+actual_savings_bhd = float(df_expenses[df_expenses["Main Category"].str.contains("Savings", na=False)]["Paid_BHD"].sum()) if not df_expenses.empty else 0.0
+
+total_spent_bhd = float(df_expenses["Paid_BHD"].sum()) if not df_expenses.empty else 0.0
+total_billed_bhd = float(df_expenses["Billed_BHD"].sum()) if not df_expenses.empty else 0.0
+total_pending_bhd = max(0.0, total_billed_bhd - total_spent_bhd)
+
+remaining_cash_bhd = total_income_bhd - total_spent_bhd
+
+# DASHBOARD TAB
 with tab_dash:
-    # Target calculations
-    target_debts = total_income_bhd * (debts_pct / 100.0)
-    target_needs = total_income_bhd * (needs_pct / 100.0)
-    target_wants = total_income_bhd * (wants_pct / 100.0)
-    target_savings = total_income_bhd * (savings_pct / 100.0)
-
-    # Actual spending calculations by main category
-    def cat_spent(cat_name):
-        if df_expenses.empty: return 0.0
-        subset = df_expenses[df_expenses["Main Category"].str.contains(cat_name, case=False, na=False)]
-        return float(subset["Paid_BHD"].sum())
-
-    actual_priority = cat_spent("100% Priority")
-    actual_debts = cat_spent("Debts")
-    actual_needs = cat_spent("Needs")
-    actual_wants = cat_spent("Wants")
-    actual_savings = cat_spent("Savings")
-
-    rate_mult = 1.0
-    if curr_symbol == "₱": rate_mult = bhd_to_php
-    elif curr_symbol == "$": rate_mult = bhd_to_usd
+    if remaining_cash_bhd < 0:
+        over_amt = abs(remaining_cash_bhd)
+        st.markdown(
+            f'<div class="priority-banner">'
+            f'⚠️ <b>OVER BUDGET ALERT:</b> Total expenses paid exceed income by <b>BD {over_amt:,.2f}</b> '
+            f'(₱{(over_amt * bhd_to_php):,.2f} | ${(over_amt * bhd_to_usd):,.2f}). Please review your spending.'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown(
+            f'<div class="income-card">'
+            f'🟢 <b>NET INCOME REMAINING SURPLUS:</b> You have <b>BD {remaining_cash_bhd:,.2f}</b> '
+            f'(₱{(remaining_cash_bhd * bhd_to_php):,.2f} | ${(remaining_cash_bhd * bhd_to_usd):,.2f}) available.'
+            f'</div>',
+            unsafe_allow_html=True
+        )
 
     m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Total Monthly Income", f"{curr_symbol}{(total_income_bhd * rate_mult):,.2f}", help=f"BD {total_income_bhd:,.2f}")
-    m2.metric("Total Expenses Paid", f"{curr_symbol}{(total_spent_bhd * rate_mult):,.2f}", delta=f"-{curr_symbol}{(total_spent_bhd * rate_mult):,.2f}", delta_color="inverse")
+    m1.metric("Total Monthly Income", f"{curr_symbol} {(total_income_bhd * rate_mult):,.2f}")
+    m2.metric("Total Expenses Paid", f"{curr_symbol} {(total_spent_bhd * rate_mult):,.2f}")
+    m3.metric("Total Expenses to be Paid", f"{curr_symbol} {(total_billed_bhd * rate_mult):,.2f}", delta=f"Pending: {curr_symbol} {(total_pending_bhd * rate_mult):,.2f}")
     
-    if net_remaining_bhd >= 0:
-        m3.metric("Remaining Net Cash", f"{curr_symbol}{(net_remaining_bhd * rate_mult):,.2f}", delta=f"{curr_symbol}{(net_remaining_bhd * rate_mult):,.2f}")
+    if remaining_cash_bhd >= 0:
+        m4.metric("Remaining Net Cash", f"{curr_symbol} {(remaining_cash_bhd * rate_mult):,.2f}")
     else:
-        m3.metric("Over Budget Overage", f"-{curr_symbol}{(abs(net_remaining_bhd) * rate_mult):,.2f}", delta=f"-{curr_symbol}{(abs(net_remaining_bhd) * rate_mult):,.2f}", delta_color="inverse")
-
-    savings_rate = (actual_savings / total_income_bhd * 100.0) if total_income_bhd > 0 else 0.0
-    m4.metric("Savings & Invest Rate", f"{savings_rate:.1f}%", delta=f"{savings_rate - savings_pct:.1f}% vs Target")
+        m4.metric("Over Budget Overage", f"-{curr_symbol} {(abs(remaining_cash_bhd) * rate_mult):,.2f}", delta="NEGATIVE BALANCE", delta_color="inverse")
 
     st.markdown("---")
-    st.subheader(f"📊 {framework_title} Benchmark Allocation")
+    framework_title = f"{debts_pct}/{needs_pct}/{wants_pct}/{savings_pct} Budget Framework Breakdown"
+    st.subheader(f"📊 {framework_title}")
 
-    cat_table_data = [
-        {"Category": "100% Priority & People to Pay", "Target %": "100%", "Target (BD)": total_income_bhd, "Actual Paid (BD)": actual_priority, "Status": "Mandatory First"},
-        {"Category": f"Debts & Credits ({debts_pct}%)", "Target %": f"{debts_pct}%", "Target (BD)": target_debts, "Actual Paid (BD)": actual_debts, "Status": "On Track" if actual_debts <= target_debts else "Over Target"},
-        {"Category": f"Needs ({needs_pct}%)", "Target %": f"{needs_pct}%", "Target (BD)": target_needs, "Actual Paid (BD)": actual_needs, "Status": "On Track" if actual_needs <= target_needs else "Over Target"},
-        {"Category": f"Wants ({wants_pct}%)", "Target %": f"{wants_pct}%", "Target (BD)": target_wants, "Actual Paid (BD)": actual_wants, "Status": "On Track" if actual_wants <= target_wants else "Over Target"},
-        {"Category": f"Savings & Investments ({savings_pct}%)", "Target %": f"{savings_pct}%", "Target (BD)": target_savings, "Actual Paid (BD)": actual_savings, "Status": "Target Met" if actual_savings >= target_savings else "Under Goal"}
+    avail_after_priority = max(0.0, total_income_bhd - priority_allocation_bhd)
+    target_debts_bhd = avail_after_priority * (debts_pct / 100.0)
+    target_needs_bhd = avail_after_priority * (needs_pct / 100.0)
+    target_wants_bhd = avail_after_priority * (wants_pct / 100.0)
+    target_savings_bhd = avail_after_priority * (savings_pct / 100.0)
+
+    cat_data = [
+        {"Category": "100% Mandatory Priority", "Target (BHD)": priority_allocation_bhd, "Paid (BHD)": actual_priority_bhd, "Difference (BHD)": priority_allocation_bhd - actual_priority_bhd, "Status": "Paid" if actual_priority_bhd >= priority_allocation_bhd else "Pending"},
+        {"Category": f"Debts & Credits ({debts_pct}%)", "Target (BHD)": target_debts_bhd, "Paid (BHD)": actual_debts_bhd, "Difference (BHD)": target_debts_bhd - actual_debts_bhd, "Status": "On Track" if actual_debts_bhd <= target_debts_bhd else "Over Target"},
+        {"Category": f"Needs ({needs_pct}%)", "Target (BHD)": target_needs_bhd, "Paid (BHD)": actual_needs_bhd, "Difference (BHD)": target_needs_bhd - actual_needs_bhd, "Status": "On Track" if actual_needs_bhd <= target_needs_bhd else "Over Target"},
+        {"Category": f"Wants ({wants_pct}%)", "Target (BHD)": target_wants_bhd, "Paid (BHD)": actual_wants_bhd, "Difference (BHD)": target_wants_bhd - actual_wants_bhd, "Status": "On Track" if actual_wants_bhd <= target_wants_bhd else "Over Target"},
+        {"Category": f"Savings ({savings_pct}%)", "Target (BHD)": target_savings_bhd, "Paid (BHD)": actual_savings_bhd, "Difference (BHD)": actual_savings_bhd - target_savings_bhd, "Status": "Goal Met" if actual_savings_bhd >= target_savings_bhd else "Under Goal"}
     ]
-    df_cat_summary = pd.DataFrame(cat_table_data)
+    df_cat_summary = pd.DataFrame(cat_data)
     
     st.dataframe(
         df_cat_summary.style.format({
-            "Target (BD)": lambda x: f"BD {x:,.2f} (₱{to_php(x):,.2f})",
-            "Actual Paid (BD)": lambda x: f"BD {x:,.2f} (₱{to_php(x):,.2f})"
+            "Target (BHD)": "BD {:,.2f}",
+            "Paid (BHD)": "BD {:,.2f}",
+            "Difference (BHD)": "BD {:,.2f}"
         }),
         use_container_width=True,
         hide_index=True
     )
 
     st.markdown("---")
-    c_ch1, c_ch2 = st.columns(2)
-    with c_ch1:
-        st.subheader("Target vs. Actual Spending (BD)")
+    c1, c2 = st.columns(2)
+    with c1:
+        st.subheader("Target vs. Actual Payments")
+        chart_df = pd.DataFrame({
+            "Category": ["Priority", "Debts", "Needs", "Wants", "Savings"],
+            "Target": [priority_allocation_bhd, target_debts_bhd, target_needs_bhd, target_wants_bhd, target_savings_bhd],
+            "Actual": [actual_priority_bhd, actual_debts_bhd, actual_needs_bhd, actual_wants_bhd, actual_savings_bhd]
+        })
         fig_bar = go.Figure(data=[
-            go.Bar(name='Target', x=["Debts", "Needs", "Wants", "Savings"], y=[target_debts, target_needs, target_wants, target_savings], marker_color='#93C5FD'),
-            go.Bar(name='Actual Paid', x=["Debts", "Needs", "Wants", "Savings"], y=[actual_debts, actual_needs, actual_wants, actual_savings], marker_color='#1D4ED8')
+            go.Bar(name='Target', x=chart_df['Category'], y=chart_df['Target'], marker_color='#93C5FD'),
+            go.Bar(name='Actual', x=chart_df['Category'], y=chart_df['Actual'], marker_color='#1D4ED8')
         ])
         fig_bar.update_layout(barmode='group', yaxis_title="Amount (BHD)", margin=dict(l=20, r=20, t=30, b=20))
         st.plotly_chart(fig_bar, use_container_width=True)
 
-    with c_ch2:
-        st.subheader("Expense Distribution Share")
+    with c2:
+        st.subheader("Actual Payment Distribution")
         if total_spent_bhd > 0:
             fig_pie = px.pie(
-                values=[actual_priority, actual_debts, actual_needs, actual_wants, actual_savings],
-                names=["100% Priority", "Debts & Credits", "Needs", "Wants", "Savings & Investments"],
+                values=[actual_priority_bhd, actual_debts_bhd, actual_needs_bhd, actual_wants_bhd, actual_savings_bhd],
+                names=["Priority", "Debts", "Needs", "Wants", "Savings"],
                 color_discrete_sequence=['#EF4444', '#F59E0B', '#2563EB', '#8B5CF6', '#10B981'],
-                hole=0.4
+                hole=0.45
             )
             fig_pie.update_layout(margin=dict(l=20, r=20, t=30, b=20))
             st.plotly_chart(fig_pie, use_container_width=True)
         else:
-            st.info("No expenses recorded yet.")
+            st.info("No expense transactions recorded yet.")
 
-# ----------------------------------------------------
-# TAB 2: RECORD EXPENSE (Instant Dynamic Dropdowns)
-# ----------------------------------------------------
+# ADD EXPENSE TAB (WITH INSTANT DYNAMIC SUB-CATEGORY DROPDOWN)
 with tab_add:
-    st.subheader("➕ Record a New Payment or Expense")
-    
-    col_sel1, col_sel2 = st.columns(2)
-    with col_sel1:
-        exp_date = st.date_input("Date", value=datetime.today())
-        main_cat_options = [
-            "100% Priority & People to Pay",
+    st.subheader("➕ Record a New Expense / Payment")
+
+    col_cat1, col_cat2 = st.columns(2)
+    with col_cat1:
+        main_cat = st.selectbox("Select Main Category", [
+            "100% Mandatory Priority & People to Pay",
             f"Debts & Credits ({debts_pct}%)",
             f"Needs ({needs_pct}%)",
             f"Wants ({wants_pct}%)",
             f"Savings & Investments ({savings_pct}%)"
-        ]
-        main_cat = st.selectbox("Category", main_cat_options, key="add_main_cat")
-    
-    with col_sel2:
+        ], key="record_main_category_select")
+
+    with col_cat2:
         if "Priority" in main_cat:
-            sub_cats = ["Family Remittance & People to Pay", "House Rental", "Electric / Water / Utility Bills", "Urgent Loans & Debt", "Emergency Support"]
+            sub_cats = ["Family Remittance", "House Rent", "Electricity & Water (EWA)", "Helper / Nanny Salary", "Child Tuition Fee", "Critical Medical"]
         elif "Debts" in main_cat:
-            sub_cats = ["Credit Card Payment", "Bank Loan Installment", "Car Loan", "Housing Loan", "Personal Debt Payoff"]
+            sub_cats = ["Credit Card Minimum", "Credit Card Full", "Bank Personal Loan", "Car Loan", "Housing Mortgage", "Private Loan"]
         elif "Needs" in main_cat:
-            sub_cats = ["Groceries & Food Essentials", "Transportation / Fuel", "Healthcare & Insurance", "School / Education Fees", "Work Expenses"]
+            sub_cats = ["Groceries & Food", "Mobile & Internet", "Fuel & Transport", "Health & Insurance", "Home Maintenance", "School Supplies"]
         elif "Wants" in main_cat:
-            sub_cats = ["Dining Out & Coffee", "Shopping & Personal Care", "Entertainment & Subscriptions", "Travel & Leisure", "Gadgets & Hobbies"]
+            sub_cats = ["Dining Out & Coffee", "Shopping & Apparel", "Streaming & Subscriptions", "Entertainment & Hobbies", "Vacation / Travel", "Miscellaneous"]
         else:
-            sub_cats = ["Emergency Fund", "COL Stock Investments", "MT5 Trading Deposit", "Index Funds / Stocks", "Pension / Savings Account"]
-        
-        sub_cat = st.selectbox("Sub-Category", sub_cats, key="add_sub_cat")
+            sub_cats = ["Emergency Reserve", "COL Financial Stocks", "MT5 Forex Deposit", "MP2 Pag-IBIG Savings", "Time Deposit / Mutual Funds"]
+
+        sub_cat = st.selectbox("Select Sub-Category", sub_cats, key="record_sub_category_select")
 
     with st.form("add_expense_form", clear_on_submit=True):
-        fcol1, fcol2 = st.columns(2)
-        with fcol1:
-            merchant = st.text_input("Merchant / Description / Payee", placeholder="e.g., Landlord, Credit Card, Supermarket")
-            billed_amt = st.number_input("Billed / Planned Amount", min_value=0.01, value=100.0, step=10.0)
-            pay_currency = st.selectbox("Transaction Currency", ["BHD", "PHP", "USD"], index=0)
-
-        with fcol2:
-            status_choice = st.selectbox("Payment Status", ["Paid", "Partially Paid", "Pending Payment", "Not Paid"], index=0)
+        col_a, col_b = st.columns(2)
+        with col_a:
+            exp_date = st.date_input("Transaction Date", value=datetime.today())
+            merchant = st.text_input("Merchant / Description", placeholder="e.g. Lulu Hypermarket, Benefit Pay to Family")
+            payment_method = st.selectbox("Payment Method", ["Benefit Pay", "Remittance / Exchange", "Bank Transfer", "Credit Card", "Debit Card", "Cash"])
+        with col_b:
+            exp_currency = st.selectbox("Transaction Currency", ["BHD", "PHP", "USD"], index=0)
+            billed_amt = st.number_input(f"Billed Amount ({exp_currency})", min_value=0.01, value=50.0, step=5.0)
             
-            default_actual = billed_amt if status_choice == "Paid" else (0.0 if "Pending" in status_choice or "Not" in status_choice else billed_amt / 2.0)
-            actual_paid = st.number_input("Actual Amount Paid", min_value=0.0, value=float(default_actual), step=10.0)
-            pay_method = st.selectbox("Payment Method", ["Benefit Pay", "Remittance", "Bank Transfer", "Credit Card", "Debit Card", "Cash"])
+            pay_status = st.selectbox("Payment Status", ["Paid", "Pending Payment", "Partially Paid"], index=0)
+            def_paid = billed_amt if pay_status == "Paid" else (0.0 if pay_status == "Pending Payment" else billed_amt * 0.5)
+            actual_paid = st.number_input(f"Actual Amount Paid ({exp_currency})", min_value=0.0, value=def_paid, step=5.0)
 
-        submit_btn = st.form_submit_button("💾 Save Payment Entry", type="primary", use_container_width=True)
+        submit_btn = st.form_submit_button("💾 Save Transaction to Ledger", use_container_width=True)
 
         if submit_btn:
-            calc_status = "Paid" if actual_paid >= billed_amt else ("Not Paid" if actual_paid == 0 else "Partially Paid")
             new_row = pd.DataFrame([{
                 "Date": exp_date,
                 "Main Category": main_cat,
                 "Sub Category": sub_cat,
-                "Merchant/Description": merchant if merchant else sub_cat,
+                "Merchant/Description": merchant if merchant else "Unspecified",
                 "Billed Amount": float(billed_amt),
                 "Actual Paid": float(actual_paid),
-                "Currency": pay_currency,
-                "Status": calc_status,
-                "Payment Method": pay_method
+                "Currency": exp_currency,
+                "Payment Method": payment_method
             }])
             df_expenses = pd.concat([df_expenses, new_row], ignore_index=True)
             save_data(df_expenses, DATA_FILE)
-            st.success(f"Successfully recorded transaction for '{merchant if merchant else sub_cat}'!")
+            st.success(f"Successfully recorded transaction for {exp_currency} {billed_amt:,.2f}!")
             st.rerun()
 
-# ----------------------------------------------------
-# TAB 3: TRANSACTION HISTORY (Interactive & Color Styler)
-# ----------------------------------------------------
+# TRANSACTION HISTORY TAB
 with tab_history:
     st.subheader(f"📜 Recorded Transaction History ({current_user})")
 
     if not df_expenses.empty:
-        col_f1, col_f2 = st.columns(2)
-        with col_f1:
-            cat_filters = st.multiselect("Filter Main Category", options=list(df_expenses["Main Category"].unique()), default=list(df_expenses["Main Category"].unique()))
-        with col_f2:
-            status_filters = st.multiselect("Filter Status", options=["Paid", "Partially Paid", "Pending Payment", "Not Paid"], default=["Paid", "Partially Paid", "Pending Payment", "Not Paid"])
+        df_display = df_expenses.copy()
+        
+        df_display["Billed Amount"] = pd.to_numeric(df_display["Billed Amount"], errors="coerce").fillna(0.0)
+        df_display["Actual Paid"] = pd.to_numeric(df_display["Actual Paid"], errors="coerce").fillna(0.0)
+        
+        df_display["Pending Due"] = (df_display["Billed Amount"] - df_display["Actual Paid"]).clip(lower=0.0)
+        
+        df_display["% Paid"] = (df_display["Actual Paid"] / df_display["Billed Amount"].replace(0, 1) * 100).clip(0, 100).round(1)
+        df_display["% Remaining"] = (100.0 - df_display["% Paid"]).round(1)
+        
+        def calc_status(pct):
+            if pct >= 100.0: return "Paid"
+            elif pct <= 0.0: return "Not Paid"
+            else: return "Partially Paid"
+            
+        df_display["Status"] = df_display["% Paid"].apply(calc_status)
 
-        # Filter
-        df_filtered = df_expenses.copy()
-        if cat_filters:
-            df_filtered = df_filtered[df_filtered["Main Category"].isin(cat_filters)]
-        if status_filters:
-            df_filtered = df_filtered[df_filtered["Status"].isin(status_filters)]
+        def make_eq_str(row):
+            c = str(row["Currency"]).upper()
+            b = float(row["Billed Amount"])
+            p = float(row["Actual Paid"])
+            if c == "BHD":
+                return f"₱{(p*bhd_to_php):,.2f} | ${(p*bhd_to_usd):,.2f}"
+            elif c == "PHP":
+                bhd = p / bhd_to_php
+                return f"BD {bhd:,.2f} | ${(bhd*bhd_to_usd):,.2f}"
+            else:
+                bhd = p / bhd_to_usd
+                return f"BD {bhd:,.2f} | ₱{(bhd*bhd_to_php):,.2f}"
 
-        # Grouping & Chronological Sorting
+        df_display["Equivalent (BHD / PHP / USD)"] = df_display.apply(make_eq_str, axis=1)
+
         cat_order = {
-            "100% Priority": 1,
+            "100% Mandatory Priority": 1,
             "Debts": 2,
             "Needs": 3,
             "Wants": 4,
@@ -483,104 +485,35 @@ with tab_history:
         }
         def get_cat_rank(cat_str):
             for k, v in cat_order.items():
-                if k.lower() in str(cat_str).lower():
-                    return v
+                if k in str(cat_str): return v
             return 6
 
-        df_filtered["cat_rank"] = df_filtered["Main Category"].apply(get_cat_rank)
-        df_filtered["Date_DT"] = pd.to_datetime(df_filtered["Date"])
-        df_filtered = df_filtered.sort_values(by=["cat_rank", "Date_DT"], ascending=[True, True]).reset_index(drop=True)
-
-        # Recalculate Columns
-        df_filtered["Billed Amount"] = pd.to_numeric(df_filtered["Billed Amount"], errors="coerce").fillna(0.0)
-        df_filtered["Actual Paid"] = pd.to_numeric(df_filtered["Actual Paid"], errors="coerce").fillna(0.0)
+        df_display["cat_rank"] = df_display["Main Category"].apply(get_cat_rank)
+        df_display = df_display.sort_values(by=["cat_rank", "Date"], ascending=[True, True]).reset_index(drop=True)
         
-        df_filtered["Pending Due"] = (df_filtered["Billed Amount"] - df_filtered["Actual Paid"]).clip(lower=0.0)
-        
-        df_filtered["% Paid"] = df_filtered.apply(
-            lambda r: (r["Actual Paid"] / r["Billed Amount"] * 100.0) if r["Billed Amount"] > 0 else (100.0 if r["Actual Paid"] > 0 else 0.0),
-            axis=1
-        )
-        df_filtered["% Remaining"] = (100.0 - df_filtered["% Paid"]).clip(lower=0.0)
+        df_display["Item #"] = range(1, len(df_display) + 1)
 
-        # Auto-update status based on % Paid
-        def auto_status(row):
-            pct = row["% Paid"]
-            if pct >= 100.0:
-                return "Paid"
-            elif pct <= 0.0:
-                return "Not Paid"
-            else:
-                return "Partially Paid"
-
-        df_filtered["Status"] = df_filtered.apply(auto_status, axis=1)
-
-        # Build Equivalent String
-        def make_equiv_str(row):
-            amt = row["Actual Paid"]
-            cur = row.get("Currency", "BHD")
-            bhd_val = to_bhd(amt, cur)
-            php_val = to_php(bhd_val)
-            usd_val = to_usd(bhd_val)
-            return f"BD {bhd_val:,.2f} | ₱{php_val:,.2f} | ${usd_val:,.2f}"
-
-        df_filtered["Equivalent (BHD / PHP / USD)"] = df_filtered.apply(make_equiv_str, axis=1)
-
-        # Assign Item #
-        df_filtered["Item #"] = range(1, len(df_filtered) + 1)
-
-        display_cols = [
+        cols_order = [
             "Item #", "Date", "Main Category", "Sub Category", "Merchant/Description",
-            "Billed Amount", "Actual Paid", "Currency", "Pending Due",
-            "% Paid", "% Remaining", "Equivalent (BHD / PHP / USD)", "Status", "Payment Method"
+            "Billed Amount", "Actual Paid", "Currency", "Pending Due", "% Paid", "% Remaining",
+            "Equivalent (BHD / PHP / USD)", "Status", "Payment Method"
         ]
+        df_display = df_display[[c for c in cols_order if c in df_display.columns]]
+
+        def style_rows(row):
+            status = str(row.get("Status", ""))
+            pct_paid = float(row.get("% Paid", 0.0))
+            if status == "Paid" or pct_paid >= 100.0:
+                return ['background-color: #D1FAE5; color: #065F46; font-weight: 600;'] * len(row)
+            elif status == "Partially Paid" or (pct_paid > 0.0 and pct_paid < 100.0):
+                return ['background-color: #FEF3C7; color: #92400E; font-weight: 600;'] * len(row)
+            else:
+                return ['background-color: #FEE2E2; color: #991B1B; font-weight: 600;'] * len(row)
+
+        st.markdown("#### 🎨 Status-Highlighted Transaction View (Green = 100% Paid, Yellow = Partial, Red = Unpaid)")
         
-        df_display = df_filtered[display_cols].copy()
-
-        st.caption("✏️ **Double-click any cell** below to edit dates, categories, descriptions, or amounts. Select rows to delete, then click **💾 Save Changes**!")
-
-        edited_df = st.data_editor(
-            df_display,
-            num_rows="dynamic",
-            use_container_width=True,
-            key=f"editor_{current_user}",
-            disabled=["Item #", "Pending Due", "% Paid", "% Remaining", "Equivalent (BHD / PHP / USD)"]
-        )
-
-        col_s1, col_s2 = st.columns(2)
-        with col_s1:
-            if st.button("💾 Save Ledger Changes", type="primary", use_container_width=True):
-                save_cols = ["Date", "Main Category", "Sub Category", "Merchant/Description", "Billed Amount", "Actual Paid", "Currency", "Status", "Payment Method"]
-                clean_save = edited_df[save_cols].copy()
-                save_data(clean_save, DATA_FILE)
-                st.success("Ledger saved successfully!")
-                st.rerun()
-
-        with col_s2:
-            if st.button("🗑️ Clear Entire History", use_container_width=True):
-                if os.path.exists(DATA_FILE): os.remove(DATA_FILE)
-                st.success("All records cleared!")
-                st.rerun()
-
-        st.markdown("---")
-        st.subheader("🎨 Status-Highlighted Ledger View")
-
-        # Color Styler for Table View
-        def style_rows(df):
-            styles = pd.DataFrame('', index=df.index, columns=df.columns)
-            for idx, row in df.iterrows():
-                pct = row["% Paid"]
-                if pct >= 100.0:
-                    bg = 'background-color: #D1FAE5; color: #065F46; font-weight: 600;'  # Green
-                elif pct <= 0.0:
-                    bg = 'background-color: #FEE2E2; color: #991B1B; font-weight: 600;'  # Red
-                else:
-                    bg = 'background-color: #FEF3C7; color: #92400E; font-weight: 600;'  # Yellow
-                styles.loc[idx] = bg
-            return styles
-
         st.dataframe(
-            df_display.style.apply(style_rows, axis=None).format({
+            df_display.style.apply(style_rows, axis=1).format({
                 "Billed Amount": "{:,.2f}",
                 "Actual Paid": "{:,.2f}",
                 "Pending Due": "{:,.2f}",
@@ -591,210 +524,288 @@ with tab_history:
             hide_index=True
         )
 
-        # ----------------------------------------------------
-        # 💰 TOTAL OUTSTANDING & PAYMENT LEDGER SUMMARY
-        # ----------------------------------------------------
+        st.markdown("---")
+        st.markdown("#### ✏️ Interactive Ledger Editor (Modify Cells & Save Changes)")
+        
+        edited_df = st.data_editor(
+            df_display,
+            num_rows="dynamic",
+            use_container_width=True,
+            key=f"editor_{current_user}",
+            disabled=["Item #", "Pending Due", "% Paid", "% Remaining", "Equivalent (BHD / PHP / USD)"]
+        )
+
+        if st.button("💾 Save Ledger Changes", type="primary", use_container_width=True):
+            save_cols = ["Date", "Main Category", "Sub Category", "Merchant/Description", "Billed Amount", "Actual Paid", "Currency", "Payment Method"]
+            save_df = edited_df[[c for c in save_cols if c in edited_df.columns]]
+            save_data(save_df, DATA_FILE)
+            st.success("Ledger updated and saved successfully!")
+            st.rerun()
+
         st.markdown("---")
         st.subheader("💰 Total Outstanding & Payment Ledger Summary")
 
-        # Aggregate Overall Totals in BHD
-        total_billed_bhd = float(df_filtered.apply(lambda r: to_bhd(r["Billed Amount"], r["Currency"]), axis=1).sum())
-        total_paid_bhd = float(df_filtered.apply(lambda r: to_bhd(r["Actual Paid"], r["Currency"]), axis=1).sum())
-        total_pending_bhd = (total_billed_bhd - total_paid_bhd) if total_billed_bhd >= total_paid_bhd else 0.0
+        php_rows = df_display[df_display["Currency"] == "PHP"]
+        php_billed = float(php_rows["Billed Amount"].sum()) if not php_rows.empty else 0.0
+        php_paid = float(php_rows["Actual Paid"].sum()) if not php_rows.empty else 0.0
+        php_pending = float(php_rows["Pending Due"].sum()) if not php_rows.empty else 0.0
 
-        # Aggregate PHP Denominated / PHP Specific Totals from Transactions
-        php_records = df_filtered[df_filtered["Currency"] == "PHP"]
-        
-        if not php_records.empty:
-            php_billed_raw = float(php_records["Billed Amount"].sum())
-            php_paid_raw = float(php_records["Actual Paid"].sum())
-            php_pending_raw = float(php_records["Pending Due"].sum())
-            
-            php_billed_equiv_bhd = to_bhd(php_billed_raw, "PHP")
-            php_paid_equiv_bhd = to_bhd(php_paid_raw, "PHP")
-            php_pending_equiv_bhd = to_bhd(php_pending_raw, "PHP")
-        else:
-            # If no transactions were directly entered in PHP currency, calculate the converted PHP equivalent of all records
-            php_billed_raw = to_php(total_billed_bhd)
-            php_paid_raw = to_php(total_paid_bhd)
-            php_pending_raw = to_php(total_pending_bhd)
-            
-            php_billed_equiv_bhd = total_billed_bhd
-            php_paid_equiv_bhd = total_paid_bhd
-            php_pending_equiv_bhd = total_pending_bhd
+        bhd_billed_tot = total_billed_bhd
+        bhd_paid_tot = total_spent_bhd
+        bhd_pending_tot = total_pending_bhd
 
-        # Display Summary Cards
-        sc1, sc2, sc3 = st.columns(3)
-
-        with sc1:
-            st.markdown("#### 📋 Total Billed / Needed to Pay")
-            st.info(
-                f"**🇵🇭 Philippine Peso (PHP):**\n"
-                f"- **Needed to Pay:** ₱{php_billed_raw:,.2f}\n"
-                f"- **Equivalent BHD:** BD {php_billed_equiv_bhd:,.2f}\n\n"
-                f"---\n"
-                f"**🌍 Grand Total All Currencies:**\n"
-                f"- **BD:** BD {total_billed_bhd:,.2f}\n"
-                f"- **PHP:** ₱{to_php(total_billed_bhd):,.2f}\n"
-                f"- **USD:** ${to_usd(total_billed_bhd):,.2f}"
+        s1, s2, s3 = st.columns(3)
+        with s1:
+            st.markdown(
+                f'<div class="rate-card">'
+                f'<b>📋 TOTAL BILLED / NEEDED TO PAY:</b><br/>'
+                f'• <b>PHP Records:</b> ₱{php_billed:,.2f} (BD {php_billed/bhd_to_php:,.2f})<br/>'
+                f'• <b>Grand Total (All Currencies):</b><br/>'
+                f'&nbsp;&nbsp;- BD {bhd_billed_tot:,.2f}<br/>'
+                f'&nbsp;&nbsp;- ₱{(bhd_billed_tot * bhd_to_php):,.2f}<br/>'
+                f'&nbsp;&nbsp;- ${(bhd_billed_tot * bhd_to_usd):,.2f}'
+                f'</div>',
+                unsafe_allow_html=True
             )
 
-        with sc2:
-            st.markdown("#### 🟢 Total Actual Amount Paid")
-            st.success(
-                f"**🇵🇭 Philippine Peso (PHP):**\n"
-                f"- **Paid Amount:** ₱{php_paid_raw:,.2f}\n"
-                f"- **Equivalent BHD:** BD {php_paid_equiv_bhd:,.2f}\n\n"
-                f"---\n"
-                f"**🌍 Grand Total All Currencies:**\n"
-                f"- **BD:** BD {total_paid_bhd:,.2f}\n"
-                f"- **PHP:** ₱{to_php(total_paid_bhd):,.2f}\n"
-                f"- **USD:** ${to_usd(total_paid_bhd):,.2f}"
+        with s2:
+            st.markdown(
+                f'<div class="income-card">'
+                f'<b>🟢 TOTAL ACTUAL AMOUNT PAID:</b><br/>'
+                f'• <b>PHP Records:</b> ₱{php_paid:,.2f} (BD {php_paid/bhd_to_php:,.2f})<br/>'
+                f'• <b>Grand Total (All Currencies):</b><br/>'
+                f'&nbsp;&nbsp;- BD {bhd_paid_tot:,.2f}<br/>'
+                f'&nbsp;&nbsp;- ₱{(bhd_paid_tot * bhd_to_php):,.2f}<br/>'
+                f'&nbsp;&nbsp;- ${(bhd_paid_tot * bhd_to_usd):,.2f}'
+                f'</div>',
+                unsafe_allow_html=True
             )
 
-        with sc3:
-            st.markdown("#### 🔴 Total Remaining Pending Due")
-            st.error(
-                f"**🇵🇭 Philippine Peso (PHP):**\n"
-                f"- **Remaining Unpaid:** ₱{php_pending_raw:,.2f}\n"
-                f"- **Equivalent BHD:** BD {php_pending_equiv_bhd:,.2f}\n\n"
-                f"---\n"
-                f"**🌍 Grand Total All Currencies:**\n"
-                f"- **BD:** BD {total_pending_bhd:,.2f}\n"
-                f"- **PHP:** ₱{to_php(total_pending_bhd):,.2f}\n"
-                f"- **USD:** ${to_usd(total_pending_bhd):,.2f}"
+        with s3:
+            st.markdown(
+                f'<div class="priority-banner">'
+                f'<b>🔴 TOTAL REMAINING PENDING DUE:</b><br/>'
+                f'• <b>PHP Records:</b> ₱{php_pending:,.2f} (BD {php_pending/bhd_to_php:,.2f})<br/>'
+                f'• <b>Grand Total (All Currencies):</b><br/>'
+                f'&nbsp;&nbsp;- BD {bhd_pending_tot:,.2f}<br/>'
+                f'&nbsp;&nbsp;- ₱{(bhd_pending_tot * bhd_to_php):,.2f}<br/>'
+                f'&nbsp;&nbsp;- ${(bhd_pending_tot * bhd_to_usd):,.2f}'
+                f'</div>',
+                unsafe_allow_html=True
             )
 
     else:
-        st.info("No transaction history recorded yet. Add payments in the 'Record Expense' tab!")
+        st.info("No transaction records found. Add your first payment in the 'Record Expense' tab!")
 
-# ----------------------------------------------------
-# TAB 4: MT5 & COL INVESTMENTS
-# ----------------------------------------------------
+# 🔮 12-MONTH / YEARLY PROJECTED BUDGETING & FORECAST ENGINE
+with tab_forecast:
+    st.subheader("🔮 Future 12-Month Projected Budgeting & Savings Engine")
+    st.markdown("Project your future monthly expenses, income growth, recurring commitments, and cumulative savings potential over the next 12 months.")
+
+    f_col1, f_col2, f_col3 = st.columns(3)
+    with f_col1:
+        proj_base_income = st.number_input("Base Projected Monthly Income (BHD)", min_value=0.0, value=float(total_income_bhd), step=50.0)
+        income_growth_pct = st.slider("Expected Annual Income Growth (%)", 0.0, 20.0, 3.0, step=0.5)
+    with f_col2:
+        proj_monthly_needs = st.number_input("Projected Fixed Needs & Priority / Month (BHD)", min_value=0.0, value=float(priority_allocation_bhd + target_needs_bhd + target_debts_bhd), step=20.0)
+        inflation_pct = st.slider("Expected Annual Expense Inflation (%)", 0.0, 15.0, 2.5, step=0.5)
+    with f_col3:
+        proj_monthly_wants = st.number_input("Projected Lifestyle Allowance / Month (BHD)", min_value=0.0, value=float(target_wants_bhd), step=10.0)
+        target_savings_monthly = st.number_input("Target Monthly Savings Goal (BHD)", min_value=0.0, value=float(target_savings_bhd), step=10.0)
+
+    st.markdown("---")
+    st.markdown("#### 📅 12-Month Detailed Financial Projections Matrix")
+
+    months = ["Month 1", "Month 2", "Month 3", "Month 4", "Month 5", "Month 6", "Month 7", "Month 8", "Month 9", "Month 10", "Month 11", "Month 12"]
+    
+    forecast_rows = []
+    cum_savings = 0.0
+
+    for i, m_name in enumerate(months):
+        m_inc = proj_base_income * ((1 + (income_growth_pct / 100.0) / 12) ** i)
+        m_needs = proj_monthly_needs * ((1 + (inflation_pct / 100.0) / 12) ** i)
+        m_wants = proj_monthly_wants
+        m_total_exp = m_needs + m_wants
+        m_net_surplus = m_inc - m_total_exp
+        cum_savings += m_net_surplus
+
+        forecast_rows.append({
+            "Month": m_name,
+            "Projected Income (BHD)": round(m_inc, 2),
+            "Essential Needs & Debts (BHD)": round(m_needs, 2),
+            "Lifestyle Allowance (BHD)": round(m_wants, 2),
+            "Total Projected Expenses (BHD)": round(m_total_exp, 2),
+            "Net Monthly Surplus (BHD)": round(m_net_surplus, 2),
+            "Cumulative Wealth / Savings (BHD)": round(cum_savings, 2)
+        })
+
+    df_forecast = pd.DataFrame(forecast_rows)
+
+    st.dataframe(
+        df_forecast.style.format({
+            "Projected Income (BHD)": "BD {:,.2f}",
+            "Essential Needs & Debts (BHD)": "BD {:,.2f}",
+            "Lifestyle Allowance (BHD)": "BD {:,.2f}",
+            "Total Projected Expenses (BHD)": "BD {:,.2f}",
+            "Net Monthly Surplus (BHD)": "BD {:,.2f}",
+            "Cumulative Wealth / Savings (BHD)": "BD {:,.2f}"
+        }),
+        use_container_width=True,
+        hide_index=True
+    )
+
+    tot_1y_inc = df_forecast["Projected Income (BHD)"].sum()
+    tot_1y_exp = df_forecast["Total Projected Expenses (BHD)"].sum()
+    tot_1y_savings = df_forecast["Net Monthly Surplus (BHD)"].sum()
+
+    st.markdown("---")
+    fc1, fc2, fc3 = st.columns(3)
+    fc1.metric("Total 1-Year Projected Income", f"BD {tot_1y_inc:,.2f}", delta=f"₱{(tot_1y_inc*bhd_to_php):,.2f}")
+    fc2.metric("Total 1-Year Projected Expenses", f"BD {tot_1y_exp:,.2f}", delta=f"₱{(tot_1y_exp*bhd_to_php):,.2f}")
+    fc3.metric("Total 1-Year Projected Savings Potential", f"BD {tot_1y_savings:,.2f}", delta=f"₱{(tot_1y_savings*bhd_to_php):,.2f}")
+
+    st.markdown("---")
+    f_chart1, f_chart2 = st.columns(2)
+    with f_chart1:
+        st.subheader("12-Month Income vs. Projected Expenses")
+        fig_f_bar = go.Figure(data=[
+            go.Bar(name='Projected Income', x=df_forecast['Month'], y=df_forecast['Projected Income (BHD)'], marker_color='#10B981'),
+            go.Bar(name='Projected Expenses', x=df_forecast['Month'], y=df_forecast['Total Projected Expenses (BHD)'], marker_color='#EF4444')
+        ])
+        fig_f_bar.update_layout(barmode='group', margin=dict(l=20, r=20, t=30, b=20))
+        st.plotly_chart(fig_f_bar, use_container_width=True)
+
+    with f_chart2:
+        st.subheader("Cumulative Wealth & Savings Growth Trend")
+        fig_f_line = px.line(
+            df_forecast, x="Month", y="Cumulative Wealth / Savings (BHD)",
+            title="12-Month Forecast Accumulation",
+            markers=True
+        )
+        fig_f_line.update_traces(line_color="#2563EB", line_width=3)
+        st.plotly_chart(fig_f_line, use_container_width=True)
+
+# MT5 PIP & MARGIN CALCULATOR TAB
+with tab_mt5:
+    st.subheader("📈 MT5 Pip Value & Required Margin Calculator")
+
+    st.markdown("#### 1. Pip Value Calculator")
+    mc1, mc2, mc3 = st.columns(3)
+    with mc1:
+        pair = st.selectbox("Trading Pair", ["USDPHP", "BHDPHP", "USDCAD", "EURUSD", "GBPUSD", "USDJPY", "XAUUSD", "USDCHF", "AUDUSD", "NZDUSD", "EURGBP", "EURJPY", "GBPJPY"])
+        account_ccy = st.selectbox("Account Currency", ["USD", "BHD", "PHP"])
+    with mc2:
+        lot_size = st.number_input("Lot Size (Volume)", min_value=0.01, max_value=100.0, value=0.10, step=0.01)
+    with mc3:
+        pips = st.number_input("Target Pips", min_value=1.0, value=20.0, step=1.0)
+
+    if "JPY" in pair or "PHP" in pair:
+        pip_val_usd_per_lot = 10.0 if "JPY" in pair else 1.8
+    elif "XAU" in pair:
+        pip_val_usd_per_lot = 10.0
+    else:
+        pip_val_usd_per_lot = 10.0
+
+    pip_val_usd = lot_size * pip_val_usd_per_lot
+    total_profit_usd = pip_val_usd * pips
+
+    if account_ccy == "USD":
+        disp_pip_val = pip_val_usd
+        disp_profit = total_profit_usd
+    elif account_ccy == "BHD":
+        disp_pip_val = pip_val_usd / bhd_to_usd
+        disp_profit = total_profit_usd / bhd_to_usd
+    else:
+        disp_pip_val = (pip_val_usd / bhd_to_usd) * bhd_to_php
+        disp_profit = (total_profit_usd / bhd_to_usd) * bhd_to_php
+
+    st.info(f"📍 **{pair} ({lot_size} Lots):** 1 Pip = **{account_ccy} {disp_pip_val:,.2f}** | Profit for {pips} pips = **{account_ccy} {disp_profit:,.2f}**")
+
+    st.markdown("---")
+    st.markdown("#### 2. Margin Calculator")
+    col_m1, col_m2 = st.columns(2)
+    with col_m1:
+        leverage = st.selectbox("Account Leverage", [100, 200, 400, 500, 1000], index=3)
+    with col_m2:
+        contract_size = 100000
+        req_margin_usd = (lot_size * contract_size) / leverage
+        if account_ccy == "USD": disp_margin = req_margin_usd
+        elif account_ccy == "BHD": disp_margin = req_margin_usd / bhd_to_usd
+        else: disp_margin = (req_margin_usd / bhd_to_usd) * bhd_to_php
+
+        st.metric(f"Required Margin ({account_ccy})", f"{account_ccy} {disp_margin:,.2f}", delta=f"1:{leverage} Leverage")
+
+# INVESTMENT TRACKER TAB
 with tab_invest:
-    st.subheader("📊 MT5 Trading & COL Stock Investments Tracker")
-    t_inv1, t_inv2 = st.tabs(["🧮 Forex Trading Calculators", "📈 Investment Portfolio"])
+    st.subheader("📈 Portfolio & Investment Asset Tracker")
 
-    with t_inv1:
-        st.markdown("### 📍 MT5 Pip Value & Margin Calculators")
-        cc1, cc2 = st.columns(2)
-        with cc1:
-            st.markdown("#### Pip Value Calculator")
-            symbol = st.selectbox("Trading Asset / Pair", ["EURUSD", "GBPUSD", "USDJPY", "XAUUSD (Gold)", "USDCHF", "AUDUSD"])
-            lots = st.number_input("Standard Lot Volume", min_value=0.01, value=1.0, step=0.1)
-            acc_curr = st.selectbox("Account Base Currency", ["USD", "BHD", "PHP"])
-            
-            pip_size = 0.01 if "JPY" in symbol else (0.1 if "Gold" in symbol or "XAU" in symbol else 0.0001)
-            lot_units = 100 if "Gold" in symbol or "XAU" in symbol else 100000
-            
-            pip_val_usd = (pip_size * lot_units) * lots
-            if acc_curr == "BHD":
-                pip_val_disp = pip_val_usd / bhd_to_usd if bhd_to_usd > 0 else 0.0
-                curr_lbl = "BD"
-            elif acc_curr == "PHP":
-                pip_val_disp = (pip_val_usd / bhd_to_usd) * bhd_to_php if bhd_to_usd > 0 else 0.0
-                curr_lbl = "₱"
-            else:
-                pip_val_disp = pip_val_usd
-                curr_lbl = "$"
+    def load_investments():
+        if os.path.exists(INVEST_FILE):
+            try: return pd.read_csv(INVEST_FILE)
+            except Exception: pass
+        return pd.DataFrame(columns=["Asset Name", "Asset Class", "Amount Invested ($)", "Current Value ($)", "Date Added"])
 
-            st.metric(f"Pip Value per {pip_size} Movement", f"{curr_lbl} {pip_val_disp:,.2f}")
+    def save_investments(df):
+        df.to_csv(INVEST_FILE, index=False)
 
-        with cc2:
-            st.markdown("#### Required Margin Calculator")
-            asset_price = st.number_input("Current Asset Market Price ($)", min_value=0.01, value=2700.0 if "Gold" in symbol else 1.0850)
-            leverage = st.selectbox("Account Leverage Ratio", [100, 200, 500, 1000], index=2)
-            
-            notional_usd = (lot_units * lots) * asset_price
-            req_margin_usd = notional_usd / leverage
-            
-            st.metric("Required Margin (USD)", f"${req_margin_usd:,.2f}")
-            st.caption(f"Equivalent in BHD: BD {(req_margin_usd/bhd_to_usd):,.2f} | PHP: ₱{((req_margin_usd/bhd_to_usd)*bhd_to_php):,.2f}")
+    df_invest = load_investments()
 
-    with t_inv2:
-        st.markdown("### 📈 COL Stocks & Investment Portfolio")
-        def load_investments():
-            if os.path.exists(INVEST_FILE):
-                try: return pd.read_csv(INVEST_FILE)
-                except Exception: pass
-            return pd.DataFrame(columns=["Asset Name", "Platform", "Units / Shares", "Buy Price", "Current Price", "Total Invested", "Current Value", "Profit / Loss"])
+    with st.form("add_invest_form", clear_on_submit=True):
+        col_i1, col_i2 = st.columns(2)
+        with col_i1:
+            asset_name = st.text_input("Asset Name", placeholder="e.g. COL Financial - BDO, MT5 Gold, MP2 Savings")
+            asset_class = st.selectbox("Asset Class", ["Stocks / Equities", "Forex Trading", "Real Estate", "Mutual Funds / ETFs", "Crypto / Commodities"])
+        with col_i2:
+            amt_inv = st.number_input("Amount Invested ($ USD)", min_value=1.0, value=500.0, step=50.0)
+            curr_val = st.number_input("Current Value ($ USD)", min_value=0.0, value=550.0, step=50.0)
 
-        df_invest = load_investments()
+        sub_inv = st.form_submit_button("Add Asset to Portfolio", use_container_width=True)
+        if sub_inv:
+            new_inv = pd.DataFrame([{
+                "Asset Name": asset_name if asset_name else "Unspecified",
+                "Asset Class": asset_class,
+                "Amount Invested ($)": amt_inv,
+                "Current Value ($)": curr_val,
+                "Date Added": datetime.today().strftime("%Y-%m-%d")
+            }])
+            df_invest = pd.concat([df_invest, new_inv], ignore_index=True)
+            save_investments(df_invest)
+            st.success("Investment asset added successfully!")
+            st.rerun()
 
-        with st.form("add_invest_form", clear_on_submit=True):
-            ic1, ic2 = st.columns(2)
-            with ic1:
-                asset_name = st.text_input("Asset Name", placeholder="e.g., COL Financial Stock, Gold, MT5 Balance")
-                platform = st.selectbox("Platform", ["COL Financial", "MT5 Broker", "Binance / Crypto", "Local Bank Index", "Other"])
-                units = st.number_input("Units / Shares Owned", min_value=0.01, value=100.0)
-            with ic2:
-                buy_price = st.number_input("Average Buy Price ($ / ₱)", min_value=0.01, value=10.0)
-                curr_price = st.number_input("Current Market Price ($ / ₱)", min_value=0.01, value=12.0)
-            
-            sub_inv = st.form_submit_button("➕ Add Investment Asset")
-            if sub_inv and asset_name:
-                tot_inv = units * buy_price
-                curr_val = units * curr_price
-                pnl = curr_val - tot_inv
-                
-                new_inv = pd.DataFrame([{
-                    "Asset Name": asset_name,
-                    "Platform": platform,
-                    "Units / Shares": units,
-                    "Buy Price": buy_price,
-                    "Current Price": curr_price,
-                    "Total Invested": tot_inv,
-                    "Current Value": curr_val,
-                    "Profit / Loss": pnl
-                }])
-                df_invest = pd.concat([df_invest, new_inv], ignore_index=True)
-                df_invest.to_csv(INVEST_FILE, index=False)
-                st.success(f"Added '{asset_name}' to portfolio!")
-                st.rerun()
+    if not df_invest.empty:
+        df_invest["Profit / Loss"] = df_invest["Current Value ($)"] - df_invest["Amount Invested ($)"]
+        df_invest["ROI %"] = (df_invest["Profit / Loss"] / df_invest["Amount Invested ($)"] * 100).round(2)
+        
+        st.dataframe(df_invest.style.format({
+            "Amount Invested ($)": "${:,.2f}",
+            "Current Value ($)": "${:,.2f}",
+            "Profit / Loss": "${:,.2f}",
+            "ROI %": "{:.2f}%"
+        }), use_container_width=True, hide_index=True)
 
-        if not df_invest.empty:
-            st.dataframe(df_invest.style.format({
-                "Buy Price": "${:,.2f}",
-                "Current Price": "${:,.2f}",
-                "Total Invested": "${:,.2f}",
-                "Current Value": "${:,.2f}",
-                "Profit / Loss": "${:,.2f}"
-            }), use_container_width=True, hide_index=True)
+        tot_inv = float(df_invest["Amount Invested ($)"].sum())
+        tot_val = float(df_invest["Current Value ($)"].sum())
+        tot_pnl = tot_val - tot_inv
 
-            tot_pnl = float(df_invest["Profit / Loss"].sum())
-            st.metric("Total Portfolio Un-realized P&L", f"${tot_pnl:,.2f}", delta=f"${tot_pnl:,.2f}")
+        st.metric("Total Portfolio Value", f"${tot_val:,.2f}", delta=f"${tot_pnl:,.2f} Total Return")
 
-            if st.button("Clear Investment Ledger"):
-                if os.path.exists(INVEST_FILE): os.remove(INVEST_FILE)
-                st.rerun()
-
-# ----------------------------------------------------
-# TAB 5: DOWNLOAD REPORTS
-# ----------------------------------------------------
+# REPORTS TAB
 with tab_reports:
     st.subheader("📥 Download Financial Reports & Data")
     col_r1, col_r2 = st.columns(2)
-    
     with col_r1:
         st.markdown("#### 📊 CSV Transaction Ledger")
         if not df_expenses.empty:
             csv_data = df_expenses.to_csv(index=False).encode("utf-8")
-            st.download_button(
-                label="📥 Download CSV Ledger",
-                data=csv_data,
-                file_name=f"financial_ledger_{current_user.lower().replace(' ', '_')}.csv",
-                mime="text/csv",
-                use_container_width=True
-            )
-        else:
-            st.info("No transaction records available to export.")
-
+            st.download_button(label="📥 Download CSV Ledger", data=csv_data, file_name=f"financial_ledger_{current_user.lower().replace(' ', '_')}.csv", mime="text/csv", use_container_width=True)
+        else: st.info("No transaction records available to export.")
     with col_r2:
         st.markdown("#### 📜 Executive Financial Summary Report")
         rep_date = datetime.today().strftime("%Y-%m-%d")
         total_exp_bhd = float(df_expenses["Paid_BHD"].sum()) if not df_expenses.empty and "Paid_BHD" in df_expenses.columns else 0.0
-        
-        rep_text = f"""==================================================
+        report_content = f"""
+==================================================
 ROGEE FINANCIAL COMMAND CENTER - EXECUTIVE REPORT
 ==================================================
 User Profile   : {current_user}
@@ -817,28 +828,23 @@ TOTAL COMBINED INCOME    : BD {total_income_bhd:,.2f}
    - Equivalent in USD   : USD ${(total_income_bhd * bhd_to_usd):,.2f}
 
 --------------------------------------------------
-2. EXPENSES & OUTSTANDING PAYMENTS
+2. EXPENSES BREAKDOWN BY CATEGORY
 --------------------------------------------------
-- Total Expenses Paid    : BD {total_exp_bhd:,.2f}
-- Net Cash Remaining     : BD {(total_income_bhd - total_exp_bhd):,.2f}
-- PHP Billed Needed      : PHP {to_php(total_billed_bhd if 'total_billed_bhd' in locals() else 0.0):,.2f}
-- PHP Actual Paid        : PHP {to_php(total_paid_bhd if 'total_paid_bhd' in locals() else 0.0):,.2f}
-- PHP Remaining Unpaid   : PHP {to_php(total_pending_bhd if 'total_pending_bhd' in locals() else 0.0):,.2f}
+- Mandatory 100% Payments: BD {actual_priority_bhd:,.2f}
+- Debts & Credits        : BD {actual_debts_bhd:,.2f}
+- Needs ({needs_pct}% Target)     : BD {actual_needs_bhd:,.2f}
+- Wants ({wants_pct}% Target)     : BD {actual_wants_bhd:,.2f}
+- Savings ({savings_pct}% Target) : BD {actual_savings_bhd:,.2f}
+--------------------------------------------------
+GRAND TOTAL EXPENSES PAID: BD {total_exp_bhd:,.2f}
+NET REMAINING CASH       : BD {(total_income_bhd - total_exp_bhd):,.2f}
 ==================================================
 """
-        st.download_button(
-            label="📥 Download Executive Summary (.TXT)",
-            data=rep_text,
-            file_name=f"financial_summary_{current_user.lower().replace(' ', '_')}.txt",
-            mime="text/plain",
-            use_container_width=True
-        )
+        st.download_button(label="📥 Download Executive Summary (.TXT)", data=report_content, file_name=f"financial_summary_{current_user.lower().replace(' ', '_')}.txt", mime="text/plain", use_container_width=True)
 
-# ----------------------------------------------------
-# TAB 6: USER GUIDE
-# ----------------------------------------------------
+# GUIDE & SETUP TAB
 with tab_guide:
-    st.subheader("📘 Security & Deployment Configuration Guide")
+    st.subheader("📘 Security & Configuration Guide")
     st.markdown("""
     ### 🔐 Custom Access Keys Setup:
     To configure private passkeys for Rogee, User 2, User 3, or User 4 on Streamlit Cloud:
