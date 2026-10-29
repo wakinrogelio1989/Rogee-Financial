@@ -117,7 +117,7 @@ if "current_user" not in st.session_state:
     st.session_state["current_user"] = "Rogee"
 
 USER_PASSKEYS = {
-    "Rogee": os.getenv("ROGEE_KEY", "rogee2026"),
+    "Rogee": os.getenv("ROGEE_KEY", "1989"),
     "Ferdie": os.getenv("USER2_KEY", "Ce_021119"),
     "User 3": os.getenv("USER3_KEY", "user32026"),
     "User 4": os.getenv("USER4_KEY", "user42026"),
