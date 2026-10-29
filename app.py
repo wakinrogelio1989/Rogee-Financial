@@ -408,7 +408,7 @@ with tab_add:
     with col_a:
         exp_date = st.date_input("Date", value=datetime.today())
         main_cat = st.selectbox("Category Group", [
-            f"Needs & Debt ({needs_pct}%)",
+            f"Needs & Debts ({needs_pct}%)",
             f"Wants ({wants_pct}%)",
             f"Savings ({savings_pct}%)",
             "100% Priority / Essential Commitments",
