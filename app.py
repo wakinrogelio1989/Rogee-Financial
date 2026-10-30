@@ -294,8 +294,8 @@ def recalculate_ledger(df, rate_php, rate_usd):
 # Security Passcode Login Portal
 # ---------------------------------------------------------
 USER_PASSCODES = {
-    "Rogee": os.environ.get("ROGEE_KEY", "rogee2026"),
-    "User 2": os.environ.get("USER2_KEY", "user2026"),
+    "Rogee": os.environ.get("ROGEE_KEY", "1989"),
+    "Ferdie": os.environ.get("USER2_KEY", "Ce_021119"),
     "User 3": os.environ.get("USER3_KEY", "user2026"),
     "User 4": os.environ.get("USER4_KEY", "user2026")
 }
@@ -348,9 +348,20 @@ st.sidebar.text(f"1 BHD = $ {bhd_to_usd:.2f} USD")
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("💵 Income Streams")
-primary_salary = st.sidebar.number_input("Primary Salary (BD)", min_value=0.0, value=1200.0, step=50.0)
-business_income = st.sidebar.number_input("Business / Freelance (BD)", min_value=0.0, value=0.0, step=50.0)
-sideline_income = st.sidebar.number_input("Sidelines & Investments (BD)", min_value=0.0, value=0.0, step=50.0)
+salary_bhd = st.sidebar.number_input("Primary Monthly Salary (BHD)", min_value=0.0, value=float(user_settings.get("salary_bhd", 500.0)), step=10.0)
+sideline_bhd = st.sidebar.number_input("Sideline / Freelance Income (BHD)", min_value=0.0, value=float(user_settings.get("sideline_bhd", 0.0)), step=10.0)
+business_bhd = st.sidebar.number_input("Business Income (BHD)", min_value=0.0, value=float(user_settings.get("business_bhd", 0.0)), step=10.0)
+other_bhd = st.sidebar.number_input("Other Income / Bonus (BHD)", min_value=0.0, value=float(user_settings.get("other_bhd", 0.0)), step=10.0)
+
+# Auto-save income settings if updated
+current_settings = {
+    "salary_bhd": salary_bhd,
+    "sideline_bhd": sideline_bhd,
+    "business_bhd": business_bhd,
+    "other_bhd": other_bhd
+}
+if current_settings != user_settings:
+    save_user_settings(current_settings, user_settings_file)
 
 total_monthly_income_bhd = primary_salary + business_income + sideline_income
 total_monthly_income_php = total_monthly_income_bhd * bhd_to_php
