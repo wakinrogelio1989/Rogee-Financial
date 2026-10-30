@@ -177,22 +177,7 @@ def load_data():
             return df
         except Exception:
             pass
-    cols = ["Item #", "Date", "Main Category", "Sub Category", "Merchant/Description", "Billed Amount", "Actual Paid", "Currency", "Pending Due", "% Paid", "% Remaining", "Equivalent", "Status", "Payment Method"]
-    return pd.DataFrame(columns=cols)
-
-def save_data(df):
-    df.to_csv(DATA_FILE, index=False)
-
-def load_stocks():
-    if os.path.exists(STOCKS_FILE):
-        try:
-            return pd.read_csv(STOCKS_FILE)
-        except Exception:
-            pass
-    return pd.DataFrame(columns=["Platform", "Ticker / Asset", "Category", "Shares / Quantity", "Avg Buy Price", "Current Price", "Currency"])
-
-def save_stocks(df):
-    df.to_csv(STOCKS_FILE, index=False)
+    \# 🌟 Define your master column sequence MASTER\_COLS = [ "Item #", "Date", "Main Category", "Sub Category", "Merchant/Description", "Billed Amount", "Actual Paid", "Currency", "Pending Due", "% Paid", "% Remaining", "Equivalent", "Status", "Payment Method" ] # Initialize or load expenses dataframe with locked column order def load\_data(): if os.path.exists(DATA\_FILE): try: df = pd.read\_csv(DATA\_FILE) if 'Date' in df.columns: df['Date'] = pd.to\_datetime(df['Date']).dt.date # 🔒 Lock column order for existing loaded CSV data df = df.reindex(columns=MASTER\_COLS) return df except Exception: pass return pd.DataFrame(columns=MASTER\_COLS) def save\_data(df): # 🔒 Ensure saved CSV on disk strictly follows MASTER\_COLS df = df.reindex(columns=MASTER\_COLS) df.to\_csv(DATA\_FILE, index=False)
 
 df_expenses = load_data()
 df_stocks = load_stocks()
