@@ -1,0 +1,26 @@
+Date,Main Category,Sub Category,Merchant/Description,Amount,Currency,Amount (BHD),Payment Method,Item #,Billed Amount,Actual Paid,Status,Pending Due,% Paid,% Remaining,Equivalent
+2026-10-30,Debts & Credits Payoff,Personal Loan,Coop 1,,BHD,,Bank Transfer,1,51.0,51.0,Paid,0.0,100.0,0.0,"₱ 8,655.60 | $ 135.64"
+2026-10-30,Debts & Credits Payoff,Personal Loan,Coop 2,,BHD,,Bank Transfer,2,100.0,100.0,Paid,0.0,100.0,0.0,"₱ 16,971.76 | $ 265.96"
+2026-10-30,Debts & Credits Payoff,Personal Loan,SPPMC,,PHP,,Bank Transfer,3,30000.0,0.0,Not Paid,30000.0,0.0,100.0,BD 176.76 | $ 470.12
+2026-11-09,Debts & Credits Payoff,Personal Loan,JUAN HAND,,PHP,,Bank Transfer,4,8471.0,0.0,Not Paid,8471.0,0.0,100.0,BD 49.91 | $ 132.75
+2026-11-09,Debts & Credits Payoff,Personal Loan,Gcash,,PHP,,Bank Transfer,5,5358.33,0.0,Not Paid,5358.33,0.0,100.0,BD 31.57 | $ 83.97
+2026-10-30,Debts & Credits Payoff,Personal Loan,Gcash,,PHP,,Bank Transfer,6,666.17,0.0,Not Paid,666.17,0.0,100.0,BD 3.93 | $ 10.44
+2026-10-30,Debts & Credits Payoff,Settle Debt,Pre Ruel,,BHD,,Bank Transfer,7,150.0,150.0,Paid,0.0,100.0,0.0,"₱ 25,457.64 | $ 398.94"
+2026-10-30,Debts & Credits Payoff,Settle Debt,Ate Ghina,,BHD,,Bank Transfer,8,110.0,0.0,Not Paid,110.0,0.0,100.0,"₱ 18,668.93 | $ 292.55"
+2026-10-29,Needs & Debts (90%),Utilities & Bills,EWA,,BHD,,Bank Transfer,9,88.0,88.0,Paid,0.0,100.0,0.0,"₱ 14,935.15 | $ 234.04"
+2026-10-29,Needs & Debts (90%),Utilities & Bills,Zain,,BHD,,Bank Transfer,10,17.35,17.35,Paid,0.0,100.0,0.0,"₱ 2,944.60 | $ 46.14"
+2026-10-29,Needs & Debts (90%),Housing / Rent / Mortgage,Flat Rent,,BHD,,Bank Transfer,11,60.0,0.0,Not Paid,60.0,0.0,100.0,"₱ 10,183.05 | $ 159.57"
+2026-10-29,Needs & Debts (90%),Transportation / Fuel,Change Oil,,BHD,,Bank Transfer,12,11.0,0.0,Not Paid,11.0,0.0,100.0,"₱ 1,866.89 | $ 29.26"
+2026-10-29,Needs & Debts (90%),Transportation / Fuel,Car Wash,,BHD,,Bank Transfer,13,5.0,5.0,Paid,0.0,100.0,0.0,₱ 848.59 | $ 13.30
+2026-10-31,Needs & Debts (90%),Tuition & Family,Jessica Allowance,,PHP,,Bank Transfer,14,8200.0,0.0,Not Paid,8200.0,0.0,100.0,BD 48.32 | $ 128.50
+2026-10-31,Needs & Debts (90%),Tuition & Family,Mom Allowance,,PHP,,Bank Transfer,15,7000.0,7000.0,Paid,0.0,100.0,0.0,BD 41.24 | $ 109.69
+2026-10-31,Needs & Debts (90%),Housing / Rent / Mortgage,"Labor Salary, Hollow Block Shifting",,PHP,,Bank Transfer,16,2000.0,0.0,Not Paid,2000.0,0.0,100.0,BD 11.78 | $ 31.34
+2026-10-31,Needs & Debts (90%),Utilities & Bills,Addessa,,PHP,,Bank Transfer,17,4600.0,0.0,Not Paid,4600.0,0.0,100.0,BD 27.10 | $ 72.08
+2026-11-12,Needs & Debts (90%),Tuition & Family,Jessica Tuition,,PHP,,Bank Transfer,18,20000.0,0.0,Not Paid,20000.0,0.0,100.0,BD 117.84 | $ 313.41
+2026-10-30,Needs & Debts (90%),Groceries,Food,,BHD,,Bank Transfer,19,20.0,15.0,Partially Paid,5.0,75.0,25.0,"₱ 3,394.35 | $ 53.19"
+2026-10-30,Needs & Debts (90%),Healthcare / Insurance,Aster,,BHD,,Bank Transfer,20,10.0,10.0,Paid,0.0,100.0,0.0,"₱ 1,697.18 | $ 26.60"
+2026-10-30,Needs & Debts (90%),Healthcare / Insurance,Medicine for Uric and Cholesterol,,BHD,,Bank Transfer,21,10.0,0.0,Not Paid,10.0,0.0,100.0,"₱ 1,697.18 | $ 26.60"
+2026-10-30,Wants (5%),Hobbies & Travel,Power Bank and Earbuds,,BHD,,Bank Transfer,22,5.0,2.75,Partially Paid,2.25,55.0,45.0,₱ 848.59 | $ 13.30
+2026-10-30,Savings (5%),Emergency Fund,My Hassad (50) & Coop (40),,BHD,,Bank Transfer,23,90.0,90.0,Paid,0.0,100.0,0.0,"₱ 15,274.58 | $ 239.36"
+2026-10-30,Wants (5%),Hobbies & Travel,FEO,,PHP,,Bank Transfer,24,2200.0,0.0,Not Paid,2200.0,0.0,100.0,BD 12.96 | $ 34.48
+2026-10-30,Wants (5%),Hobbies & Travel,CAR Parts,,PHP,,Bank Transfer,25,4200.0,0.0,Not Paid,4200.0,0.0,100.0,BD 24.75 | $ 65.82
